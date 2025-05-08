@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_chatbot/bloc/auth_bloc.dart';
+import 'package:flutter_chatbot/repository/auth_repository.dart';
 import 'package:flutter_chatbot/screen/login.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -17,24 +20,33 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: navigatorKey,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: LoginScreen(),
-      builder: EasyLoading.init(
-        builder:
-            (context, widget) => ResponsiveBreakpoints.builder(
-              child: ClampingScrollWrapper.builder(context, widget!),
-              breakpoints: [
-                const Breakpoint(start: 0, end: 450, name: MOBILE),
-                const Breakpoint(start: 451, end: 800, name: TABLET),
-                const Breakpoint(start: 801, end: 1920, name: DESKTOP),
-                const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
-              ],
-            ),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => AuthBloc(AuthRepository())),
+      ],
+      child: MaterialApp(
+        navigatorKey: navigatorKey,
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        ),
+        home: LoginScreen(),
+        builder: EasyLoading.init(
+          builder:
+              (context, widget) => ResponsiveBreakpoints.builder(
+                child: ClampingScrollWrapper.builder(context, widget!),
+                breakpoints: [
+                  const Breakpoint(start: 0, end: 450, name: MOBILE),
+                  const Breakpoint(start: 451, end: 800, name: TABLET),
+                  const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+                  const Breakpoint(
+                    start: 1921,
+                    end: double.infinity,
+                    name: '4K',
+                  ),
+                ],
+              ),
+        ),
       ),
     );
   }

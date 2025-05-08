@@ -1,7 +1,7 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_chatbot/config/app_config.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_chatbot/bloc/auth_bloc.dart';
 import 'package:flutter_chatbot/main.dart';
 import 'package:flutter_chatbot/screen/homepage.dart';
 
@@ -15,56 +15,25 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final Dio _dio = Dio();
   bool isLoading = false;
 
   void login() async {
-    setState(() {
-      isLoading = true;
-    });
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text.trim();
 
-    final data = {
-      "username": _usernameController.text,
-      "password": _passwordController.text,
-    };
-
-    try {
-      Response response = await _dio.post(
-        "${AppConfig.apiUrl}/api/v1/login",
-        data: data,
-        options: Options(headers: {"Content-Type": "application/json"}),
-      );
-
-      if (response.statusCode == 200) {
-        SchedulerBinding.instance.addPostFrameCallback((_) {
-          if (navigatorKey.currentContext != null) {
-            ScaffoldMessenger.of(
-              navigatorKey.currentContext!,
-            ).showSnackBar(const SnackBar(content: Text("Login Successful!")));
-          }
-        });
-
-        Navigator.push(
-          navigatorKey.currentContext!,
-          MaterialPageRoute(
-            builder: (context) {
-              return const HomePageScreen();
-            },
-          ),
-        );
-      } else {
-        showError(response.data['message'] ?? "Invalid Username or Password");
-      }
-    } on DioException catch (e) {
-      if (e.response != null) {
-        showError(e.response?.data['message'] ?? "Login Failed");
-      } else {
-        showError("Network Error");
-      }
-    } finally {
+    if (username.isNotEmpty && password.isNotEmpty) {
       setState(() {
-        isLoading = false;
+        isLoading = true;
       });
+
+      context.read<AuthBloc>().add(LoginRequested(username, password));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.red,
+          content: Text("username and password are required!"),
+        ),
+      );
     }
   }
 
@@ -80,6 +49,44 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthSuccess) {
+          setState(() {
+            isLoading = false;
+          });
+
+          SchedulerBinding.instance.addPostFrameCallback((_) {
+            if (navigatorKey.currentContext != null) {
+              ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
+                const SnackBar(content: Text("Login Successful!")),
+              );
+            }
+          });
+
+          Navigator.push(
+            navigatorKey.currentContext!,
+            MaterialPageRoute(
+              builder: (context) {
+                return const HomePageScreen();
+              },
+            ),
+          );
+        } else if (state is AuthFailure) {
+          setState(() {
+            isLoading = false;
+          });
+
+          ScaffoldMessenger.of(
+            navigatorKey.currentContext!,
+          ).showSnackBar(SnackBar(content: Text(state.error)));
+        }
+      },
+      child: buildLoginUI(context),
+    );
+  }
+
+  Widget buildLoginUI(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Login Page")),
       body: Padding(
