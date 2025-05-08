@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chatbot/screen/login.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-void main() {
+void main() async {
+  await dotenv.load(fileName: "assets/.env");
+
   runApp(const MyApp());
 }
 

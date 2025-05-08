@@ -1,5 +1,7 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_chatbot/config/app_config.dart';
 import 'package:flutter_chatbot/main.dart';
 import 'package:flutter_chatbot/screen/homepage.dart';
 
@@ -13,6 +15,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final Dio _dio = Dio();
   bool isLoading = false;
 
   void login() async {
@@ -20,40 +23,59 @@ class _LoginScreenState extends State<LoginScreen> {
       isLoading = true;
     });
 
-    // Simulate login process
-    await Future.delayed(const Duration(seconds: 2));
+    final data = {
+      "username": _usernameController.text,
+      "password": _passwordController.text,
+    };
 
-    setState(() {
-      isLoading = false;
-    });
-
-    if (_usernameController.text == "admin" &&
-        _passwordController.text == "admin") {
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (navigatorKey.currentContext != null) {
-          ScaffoldMessenger.of(
-            navigatorKey.currentContext!,
-          ).showSnackBar(const SnackBar(content: Text("Login Successful!")));
-        }
-      });
-
-      Navigator.push(
-        navigatorKey.currentContext!,
-        MaterialPageRoute(
-          builder: (context) {
-            return const HomePageScreen();
-          },
-        ),
+    try {
+      Response response = await _dio.post(
+        "${AppConfig.apiUrl}/api/v1/login",
+        data: data,
+        options: Options(headers: {"Content-Type": "application/json"}),
       );
-    } else {
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (navigatorKey.currentContext != null) {
-          ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
-            const SnackBar(content: Text("Invalid Username or Password")),
-          );
-        }
+
+      if (response.statusCode == 200) {
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          if (navigatorKey.currentContext != null) {
+            ScaffoldMessenger.of(
+              navigatorKey.currentContext!,
+            ).showSnackBar(const SnackBar(content: Text("Login Successful!")));
+          }
+        });
+
+        Navigator.push(
+          navigatorKey.currentContext!,
+          MaterialPageRoute(
+            builder: (context) {
+              return const HomePageScreen();
+            },
+          ),
+        );
+      } else {
+        showError(response.data['message'] ?? "Invalid Username or Password");
+      }
+    } on DioException catch (e) {
+      if (e.response != null) {
+        showError(e.response?.data['message'] ?? "Login Failed");
+      } else {
+        showError("Network Error");
+      }
+    } finally {
+      setState(() {
+        isLoading = false;
       });
     }
+  }
+
+  void showError(String message) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (navigatorKey.currentContext != null) {
+        ScaffoldMessenger.of(
+          navigatorKey.currentContext!,
+        ).showSnackBar(SnackBar(content: Text(message)));
+      }
+    });
   }
 
   @override
