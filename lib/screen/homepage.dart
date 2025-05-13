@@ -1,3 +1,4 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
 class HomePageScreen extends StatelessWidget {
@@ -18,38 +19,125 @@ class HomePageScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Home Page")),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 👇 Section 1: Carousel Slider
             const Text(
-              "Welcome to Home Page!",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "Here are some motivational quotes to inspire you:",
-              style: TextStyle(fontSize: 18),
+              "🔥 Carousel Slider",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            Expanded(
-              child: ListView.builder(
-                itemCount: quotes.length,
-                itemBuilder: (context, index) {
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 5),
-                    elevation: 2,
-                    child: ListTile(
-                      leading: const Icon(Icons.format_quote),
-                      title: Text(
+            CarouselSlider(
+              options: CarouselOptions(
+                height: 150,
+                autoPlay: true,
+                enlargeCenterPage: true,
+              ),
+              items:
+                  quotes.map((quote) {
+                    return Card(
+                      elevation: 2,
+                      margin: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Center(
+                          child: Text(
+                            quote,
+                            style: const TextStyle(fontSize: 14),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+            ),
+            const SizedBox(height: 20),
+
+            // 👇 Section 2: Grid View
+            const Text(
+              "🔷 Grid View",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            GridView.builder(
+              itemCount: quotes.length,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 2.5,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+              ),
+              itemBuilder: (context, index) {
+                return Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Center(
+                      child: Text(
                         quotes[index],
-                        style: const TextStyle(fontSize: 16),
+                        style: const TextStyle(fontSize: 14),
+                        textAlign: TextAlign.center,
                       ),
                     ),
-                  );
-                },
-              ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+
+            // 👇 Section 3: Wrap Layout
+            const Text(
+              "📌 Wrap Layout",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children:
+                  quotes.map((quote) {
+                    return Card(
+                      elevation: 2,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Text(
+                          quote,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+            ),
+            const SizedBox(height: 20),
+
+            // 👇 Section 4: List View
+            const Text(
+              "📜 List View",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            ListView.builder(
+              itemCount: quotes.length,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 5),
+                  elevation: 2,
+                  child: ListTile(
+                    leading: const Icon(Icons.format_quote),
+                    title: Text(
+                      quotes[index],
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
